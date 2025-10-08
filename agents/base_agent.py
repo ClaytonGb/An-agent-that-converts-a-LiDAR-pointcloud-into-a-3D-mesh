@@ -18,14 +18,16 @@ class BaseAgent(ABC):
         self.logger = logging.getLogger(f"Agent.{name}")
         self.logger.setLevel(logging.INFO)
         
-        # Create console handler
-        handler = logging.StreamHandler()
-        formatter = logging.Formatter(
-            f'[%(asctime)s] [{self.name}] %(levelname)s: %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S'
-        )
-        handler.setFormatter(formatter)
-        self.logger.addHandler(handler)
+        # Only add handler if logger doesn't already have one
+        # This prevents duplicate log messages when agents are recreated
+        if not self.logger.handlers:
+            handler = logging.StreamHandler()
+            formatter = logging.Formatter(
+                f'[%(asctime)s] [{self.name}] %(levelname)s: %(message)s',
+                datefmt='%Y-%m-%d %H:%M:%S'
+            )
+            handler.setFormatter(formatter)
+            self.logger.addHandler(handler)
     
     @abstractmethod
     def process(self, data: Any) -> Any:
