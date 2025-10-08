@@ -5,6 +5,7 @@ import open3d as o3d
 import numpy as np
 from typing import Optional, Union
 from .base_agent import BaseAgent
+from config import VISUALIZATION_CONFIG
 
 
 class VisualizationAgent(BaseAgent):
@@ -61,8 +62,8 @@ class VisualizationAgent(BaseAgent):
         
         # Set rendering options
         opt = vis.get_render_option()
-        opt.background_color = np.asarray([0.1, 0.1, 0.1])
-        opt.point_size = 2.0
+        opt.background_color = np.asarray(VISUALIZATION_CONFIG['background_color'])
+        opt.point_size = VISUALIZATION_CONFIG['point_size']
         
         # Run visualizer
         vis.run()
@@ -112,18 +113,23 @@ class VisualizationAgent(BaseAgent):
             return False
     
     def render_image(self, geometry: Union[o3d.geometry.PointCloud, o3d.geometry.TriangleMesh],
-                     output_path: str, width: int = 1920, height: int = 1080) -> bool:
+                     output_path: str, width: int = None, height: int = None) -> bool:
         """Render geometry to image file.
         
         Args:
             geometry: Geometry to render
             output_path: Path to save the image
-            width: Image width
-            height: Image height
+            width: Image width (defaults to config value)
+            height: Image height (defaults to config value)
             
         Returns:
             True if successful, False otherwise
         """
+        if width is None:
+            width = VISUALIZATION_CONFIG['render_width']
+        if height is None:
+            height = VISUALIZATION_CONFIG['render_height']
+            
         self.log_info(f"Rendering image ({width}x{height})...")
         
         try:
@@ -133,8 +139,8 @@ class VisualizationAgent(BaseAgent):
             
             # Set rendering options
             opt = vis.get_render_option()
-            opt.background_color = np.asarray([1, 1, 1])
-            opt.point_size = 2.0
+            opt.background_color = np.asarray(VISUALIZATION_CONFIG['render_background_color'])
+            opt.point_size = VISUALIZATION_CONFIG['point_size']
             
             # Update and capture
             vis.poll_events()
