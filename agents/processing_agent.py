@@ -4,6 +4,7 @@ import numpy as np
 import open3d as o3d
 from typing import Optional, Tuple
 from .base_agent import BaseAgent
+from config import PROCESSING_CONFIG
 
 
 class ProcessingAgent(BaseAgent):
@@ -46,18 +47,23 @@ class ProcessingAgent(BaseAgent):
             return None
     
     def remove_outliers(self, pcd: o3d.geometry.PointCloud, 
-                       nb_neighbors: int = 20, 
-                       std_ratio: float = 2.0) -> o3d.geometry.PointCloud:
+                       nb_neighbors: int = None, 
+                       std_ratio: float = None) -> o3d.geometry.PointCloud:
         """Remove statistical outliers from point cloud.
         
         Args:
             pcd: Input point cloud
-            nb_neighbors: Number of neighbors to analyze
-            std_ratio: Standard deviation ratio threshold
+            nb_neighbors: Number of neighbors to analyze (defaults to config value)
+            std_ratio: Standard deviation ratio threshold (defaults to config value)
             
         Returns:
             Cleaned point cloud
         """
+        if nb_neighbors is None:
+            nb_neighbors = PROCESSING_CONFIG['outlier_nb_neighbors']
+        if std_ratio is None:
+            std_ratio = PROCESSING_CONFIG['outlier_std_ratio']
+            
         self.log_info("Removing outliers...")
         
         cl, ind = pcd.remove_statistical_outlier(
@@ -71,20 +77,23 @@ class ProcessingAgent(BaseAgent):
         return cl
     
     def downsample(self, pcd: o3d.geometry.PointCloud, 
-                   voxel_size: float = 0.02) -> o3d.geometry.PointCloud:
+                   voxel_size: float = None) -> o3d.geometry.PointCloud:
         """Downsample point cloud using voxel grid.
         
         Args:
             pcd: Input point cloud
-            voxel_size: Size of voxel grid
+            voxel_size: Size of voxel grid (defaults to config value)
             
         Returns:
             Downsampled point cloud
         """
+        if voxel_size is None:
+            voxel_size = PROCESSING_CONFIG['voxel_size']
+            
         original_count = len(pcd.points)
         
         # Only downsample if point cloud is very dense
-        if original_count > 100000:
+        if original_count > PROCESSING_CONFIG['downsample_threshold']:
             self.log_info(f"Downsampling point cloud (voxel size: {voxel_size})...")
             pcd_down = pcd.voxel_down_sample(voxel_size=voxel_size)
             self.log_info(f"Downsampled from {original_count:,} to {len(pcd_down.points):,} points")
@@ -94,18 +103,23 @@ class ProcessingAgent(BaseAgent):
             return pcd
     
     def estimate_normals(self, pcd: o3d.geometry.PointCloud, 
-                        radius: float = 0.1, 
-                        max_nn: int = 30) -> o3d.geometry.PointCloud:
+                        radius: float = None, 
+                        max_nn: int = None) -> o3d.geometry.PointCloud:
         """Estimate normals for point cloud.
         
         Args:
             pcd: Input point cloud
-            radius: Search radius for normal estimation
-            max_nn: Maximum number of nearest neighbors
+            radius: Search radius for normal estimation (defaults to config value)
+            max_nn: Maximum number of nearest neighbors (defaults to config value)
             
         Returns:
             Point cloud with estimated normals
         """
+        if radius is None:
+            radius = PROCESSING_CONFIG['normal_radius']
+        if max_nn is None:
+            max_nn = PROCESSING_CONFIG['normal_max_nn']
+            
         self.log_info("Estimating normals...")
         
         pcd.estimate_normals(
@@ -116,7 +130,7 @@ class ProcessingAgent(BaseAgent):
         )
         
         # Orient normals consistently
-        pcd.orient_normals_consistent_tangent_plane(k=15)
+        pcd.orient_normals_consistent_tangent_plane(k=PROCESSING_CONFIG['normal_orient_k'])
         
         self.log_info("Normal estimation complete")
         return pcd

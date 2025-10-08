@@ -3,6 +3,7 @@
 import open3d as o3d
 from typing import Optional
 from .base_agent import BaseAgent
+from config import MESH_CONFIG
 
 
 class MeshGenerationAgent(BaseAgent):
@@ -52,16 +53,19 @@ class MeshGenerationAgent(BaseAgent):
             return None
     
     def poisson_reconstruction(self, pcd: o3d.geometry.PointCloud, 
-                               depth: int = 9) -> Optional[o3d.geometry.TriangleMesh]:
+                               depth: int = None) -> Optional[o3d.geometry.TriangleMesh]:
         """Generate mesh using Poisson surface reconstruction.
         
         Args:
             pcd: Input point cloud with normals
-            depth: Octree depth for reconstruction
+            depth: Octree depth for reconstruction (defaults to config value)
             
         Returns:
             Generated mesh or None
         """
+        if depth is None:
+            depth = MESH_CONFIG['poisson_depth']
+            
         self.log_info("Running Poisson surface reconstruction...")
         
         try:
@@ -70,7 +74,7 @@ class MeshGenerationAgent(BaseAgent):
             )
             
             # Remove low-density vertices
-            vertices_to_remove = densities < 0.01
+            vertices_to_remove = densities < MESH_CONFIG['poisson_density_threshold']
             mesh.remove_vertices_by_mask(vertices_to_remove)
             
             return mesh
@@ -96,7 +100,7 @@ class MeshGenerationAgent(BaseAgent):
             avg_dist = sum(distances) / len(distances)
             
             # Set radii for ball pivoting
-            radii = [avg_dist * r for r in [1, 2, 4]]
+            radii = [avg_dist * r for r in MESH_CONFIG['ball_pivot_radii_multipliers']]
             
             mesh = o3d.geometry.TriangleMesh.create_from_point_cloud_ball_pivoting(
                 pcd,

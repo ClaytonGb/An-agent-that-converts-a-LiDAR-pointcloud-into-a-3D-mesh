@@ -5,6 +5,7 @@ from typing import Optional
 import numpy as np
 import open3d as o3d
 from .base_agent import BaseAgent
+from config import VALIDATION_CONFIG
 
 
 class DataCaptureAgent(BaseAgent):
@@ -73,7 +74,7 @@ class DataCaptureAgent(BaseAgent):
             return False
         
         num_points = len(pcd.points)
-        if num_points < 100:
+        if num_points < VALIDATION_CONFIG['min_points']:
             self.log_warning(f"Point cloud has very few points: {num_points}")
             return False
         
