@@ -8,7 +8,7 @@ import logging
 class BaseAgent(ABC):
     """Abstract base class for all agents."""
     
-    def __init__(self, name: str):sz
+    def __init__(self, name: str):
         """Initialize the agent.
         
         Args:
