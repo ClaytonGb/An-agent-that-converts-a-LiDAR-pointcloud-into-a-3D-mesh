@@ -89,7 +89,9 @@ class VisualizationAgent(BaseAgent):
         
         try:
             # Create output directory if it doesn't exist
-            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+            output_dir = os.path.dirname(output_path)
+            if output_dir:  # Only create directory if path includes a directory
+                os.makedirs(output_dir, exist_ok=True)
             
             # Export based on geometry type
             if isinstance(geometry, o3d.geometry.PointCloud):
