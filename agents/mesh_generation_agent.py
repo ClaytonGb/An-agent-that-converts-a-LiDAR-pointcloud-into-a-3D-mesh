@@ -43,6 +43,11 @@ class MeshGenerationAgent(BaseAgent):
             if mesh is not None:
                 # Clean up the mesh
                 mesh = self.clean_mesh(mesh)
+                
+                # Simplify mesh if configured
+                if MESH_CONFIG['simplify_mesh']:
+                    mesh = self.simplify_mesh(mesh)
+                
                 self.log_info(f"Mesh generated: {len(mesh.vertices):,} vertices, "
                             f"{len(mesh.triangles):,} triangles")
             
@@ -134,3 +139,35 @@ class MeshGenerationAgent(BaseAgent):
         mesh.compute_vertex_normals()
         
         return mesh
+    
+    def simplify_mesh(self, mesh: o3d.geometry.TriangleMesh) -> o3d.geometry.TriangleMesh:
+        """Simplify mesh by reducing triangle count.
+        
+        Args:
+            mesh: Input mesh
+            
+        Returns:
+            Simplified mesh
+        """
+        original_triangles = len(mesh.triangles)
+        target_triangles = int(original_triangles * MESH_CONFIG['target_triangle_ratio'])
+        
+        self.log_info(f"Simplifying mesh from {original_triangles:,} to ~{target_triangles:,} triangles...")
+        
+        try:
+            # Use quadric decimation for mesh simplification
+            simplified_mesh = mesh.simplify_quadric_decimation(
+                target_number_of_triangles=target_triangles
+            )
+            
+            # Recompute normals after simplification
+            simplified_mesh.compute_vertex_normals()
+            
+            self.log_info(f"Simplified to {len(simplified_mesh.triangles):,} triangles "
+                         f"({len(simplified_mesh.triangles)/original_triangles*100:.1f}% of original)")
+            
+            return simplified_mesh
+            
+        except Exception as e:
+            self.log_warning(f"Mesh simplification failed: {str(e)}, using original mesh")
+            return mesh
