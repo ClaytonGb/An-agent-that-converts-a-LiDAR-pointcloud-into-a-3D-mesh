@@ -24,6 +24,10 @@ MESH_CONFIG = {
     
     # Ball pivoting parameters
     'ball_pivot_radii_multipliers': [1, 2, 4],
+    
+    # Mesh simplification parameters
+    'simplify_mesh': True,
+    'target_triangle_ratio': 0.3,  # Reduce triangles to 30% of original count
 }
 
 # Visualization Agent Configuration
