@@ -37,5 +37,9 @@ The system uses a multi-agent architecture where each agent specializes in a spe
 
 ## Supported Formats
 
-- Input: PLY, LAS, PCD (point cloud formats)
+- Input: PLY, LAS, PCD, XYZ (point cloud formats)
 - Output: OBJ, STL, PLY, GLTF (3D model formats)
+
+## License
+
+MIT License - See LICENSE file for details
